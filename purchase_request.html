@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PhilHealth Procurement System</title>
+  <style>
+    * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+    body { margin: 0; background-color: #ffffff; color: #000; }
+    .status-select, .procurement-select, .processor-select, .office-select, .expense-select {
+      width: 100%; height: 26px; font-size: 12.5px; padding: 2px 6px; border: 1px solid #bfbfbf; border-radius: 3px; background-color: #fff; cursor: pointer;
+    }
+    .status-select:focus, .procurement-select:focus, .processor-select:focus, .office-select:focus, .expense-select:focus {
+      outline: none; border-color: #5aa300; box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
+    }
+    .header { display: flex; align-items: center; background-color: #8fe04e; padding: 10px 20px; }
+    .logo { display: flex; align-items: center; margin-right: 30px; background: #fff; padding: 5px 15px; border-radius: 40px; }
+    .logo img { height: 45px; margin-right: 10px; }
+    .logo span { font-weight: bold; font-size: 14px; }
+    .nav { display: flex; gap: 30px; font-weight: bold; font-size: 14px; }
+    .nav a { text-decoration: none; color: #000; padding-bottom: 3px; }
+    .nav a.active { border-bottom: 3px solid #000; }
+    .container { padding: 20px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
+    thead th { border: 1px solid #bfbfbf; background-color: #f2f2f2; padding: 6px; text-align: left; font-weight: bold; cursor: pointer; }
+    thead th:hover { background-color: #e5f7d4; }
+    tbody td { border: 1px solid #d9d9d9; padding: 4px 6px; height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    tbody tr:hover { background-color: #eaf4ff; }
+    td input { width: 100%; border: none; padding: 4px 6px; font-size: 12.5px; outline: none; }
+    td input:focus { background-color: #f2fff0; border: 1px solid #5aa300; }
+    .details-row { display: none; background-color: #f9fff2; }
+    .details-container { padding: 12px; }
+    .inner-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .inner-table th { background-color: #e5f7d4; border: 1px solid #bfbfbf; padding: 6px; text-align: left; }
+    .inner-table td { border: 1px solid #d9d9d9; padding: 6px; }
+    .footer { background-color: #8fe04e; text-align: center; padding: 10px; font-weight: bold; margin-top: 40px; }
+  </style>
+
+  <!-- Export Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  // All your functions like exportToExcel(), exportToPDF(), etc.
+     // Export to PDF
+    function exportToPDF() {
+        try {
+            const element = document.querySelector('table');
+            const opt = {
+                margin: 10,
+                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+            };
+            html2pdf().set(opt).from(element).save();
+        } catch (e) {
+            alert('Error exporting to PDF: ' + e.message);
+            console.error(e);
+        }
+        
+         // Export to Excel (.xlsx)
+    function exportToExcel() {
+    try {
+        if (typeof XLSX === 'undefined') {
+            alert('XLSX library is loading. Please wait a moment and try again.');
+            return;
+        }
+
+        const table = document.querySelector('table');
+        if (!table) {
+            alert('Table not found!');
+            return;
+        }
+
+        // Prepare data
+        const data = [];
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+        data.push(headers);
+
+        table.querySelectorAll('tbody tr').forEach(row => {
+            const rowData = [];
+            row.querySelectorAll('td').forEach(td => {
+                const input = td.querySelector('input');
+                const select = td.querySelector('select');
+                if (input) rowData.push(input.value);
+                else if (select) rowData.push(select.value);
+                else rowData.push(td.innerText.trim());
+            });
+            data.push(rowData);
+        });
+
+        // Convert to worksheet
+        const ws = XLSX.utils.aoa_to_sheet(data);
+
+        // Auto-fit columns
+        const colWidths = headers.map((h, i) => {
+            let max = h.length;
+            data.forEach(r => { max = Math.max(max, (r[i] ? r[i].toString().length : 0)); });
+            return { wch: max + 2 };
+        });
+        ws['!cols'] = colWidths;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        const date = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `purchase_request_${date}.xlsx`);
+        alert('Excel file downloaded successfully!');
+    } catch (e) {
+        alert('Error exporting to Excel: ' + e.message);
+        console.error(e);
+    }
+}
+
+    }
+    
+</script>
+</head>
+
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <img src="https://www.parfait.com.ph/images/product-icon/philhealth-icon.png" alt="PhilHealth Logo">
+      <span>PhilHealth<br><small>Your Partner in Health</small></span>
+    </div>
+    <nav class="nav">
+      <a href="purchase_request.html" class="active">PURCHASE REQUEST</a>
+      <a href="request_for_qoutation.html">REQUEST FOR QUOTATION</a>
+      <a href="philgeps_posting.html">PHILGEPS POSTING OF RFQ</a>
+      <a href="notice_of_award.html">NOTICE OF AWARD</a>
+      <a href="contract.html">CONTRACT</a>
+      <a href="supplier_directory.html">SUPPLIER DIRECTORY</a>
+    </nav>
+  </div>
+
+  <main class="content">
+    <div class="container">
+      <table>
+        <thead>
+          <tr>
+            <th data-column="0">Control #</th>
+            <th data-column="1">Date Received</th>
+            <th data-column="2">Expense Code</th>
+            <th data-column="3">Particulars</th>
+            <th data-column="4">ABC</th>
+            <th data-column="5">End User</th>
+            <th data-column="6">Office</th>
+            <th data-column="7">Procurement Mode</th>
+            <th data-column="8">Processor</th>
+            <th data-column="9">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Only include your rows here; multiple rows are okay -->
+          <tr class="main-row">
+            <td><input type="text" placeholder="Control #" /></td>
+            <td><input type="date" /></td>
+            <td>
+              <select class="expense-select">
+                <option value="">-- Select Expense Code --</option>
+                <option value="EC1001">EC1001 – Office Supplies</option>
+                <option value="EC1002">EC1002 – IT Equipment</option>
+                <option value="EC1003">EC1003 – Furniture</option>
+                <option value="EC1004">EC1004 – Maintenance</option>
+                <option value="EC1005">EC1005 – Training / Seminar</option>
+              </select>
+            </td>
+            <td><input type="date" placeholder="Date Received" /></td>
+            <td><input type="text" placeholder="Particulars" /></td>
+            <td><input type="number" placeholder="ABC" /></td>
+            <td>
+              <select class="enduser-select">
+                <option value="">-- Select End User --</option>
+              </select>
+            </td>
+            <td>
+              <select class="office-select" onchange="updateEndUser(this)">
+                <option value="">-- Select Office --</option>
+                <option value="OVP">OVP</option>
+                <option value="North">North</option>
+                <option value="Central">Central</option>
+                <option value="South">South</option>
+              </select>
+            </td>
+            <td>
+              <select class="procurement-select">
+                <option value="">-- Select Mode --</option>
+                <option value="Sec27">Sec. 27 – Competitive Bidding</option>
+                <option value="Sec31">Sec. 31 – Direct Contracting</option>
+                <option value="Sec32">Sec. 32 – Direct Acquisition</option>
+                <option value="Sec33">Sec. 33 – Repeat Order</option>
+                <option value="Sec34">Sec. 34 – Small Value Procurement</option>
+                <option value="Sec351">Sec. 35.1 – Negotiated (2 Failed Bids)</option>
+                <option value="Sec355">Sec. 35.5 – Agency to Agency</option>
+                <option value="Sec356">Sec. 35.6 – Scientific / Artistic</option>
+                <option value="Sec359">Sec. 35.9 – Lease of Venue</option>
+              </select>
+            </td>
+            <td>
+              <select class="processor-select">
+                <option value="">-- Select Processor --</option>
+                <option value="Jennie">Jennie</option>
+                <option value="Jerve">Jerve</option>
+                <option value="Jeorge">Jeorge</option>
+                <option value="Ofelia">Ofelia</option>
+              </select>
+            </td>
+            <td>
+              <select class="status-select">
+                <option value="">-- Status --</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="RTS">RTS</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="export-buttons">
+        <button class="btn btn-success" onclick="exportToExcel()">Save to Excel (.xlsx)</button>
+        <button class="btn btn-danger" onclick="exportToPDF()">Save to PDF</button>
+        <button class="btn btn-info" onclick="exportToCSV()">Save to CSV</button>
+        <button id="addRowBtn" style="margin:9px 0; padding:5px 10px; font-size:10px; cursor:pointer;">+</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer">@OJT'S PROJECT WEBSITE 2026</div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script>
+    // Office -> End User logic
+    function updateEndUser(officeSelect) {
+      const row = officeSelect.closest("tr");
+      const endUserSelect = row.querySelector(".enduser-select");
+      endUserSelect.innerHTML = '<option value="">-- Select End User --</option>';
+
+      const officeUsers = {
+        "OVP": ["OVP", "ITMU", "Legal", "HCDMD", "PAU", "MSD", "HRMU", "PSMU", "FMS", "CASHIERING", "SBAC"],
+        "North": ["Branch", "LHIO Caloocan", "Mandaluyong", "Manila", "DMW OFp", "Valenzuela"],
+        "Central": ["Branch", "LHIO Quezon City", "LHIO Fairview", "LHIO Rizal"],
+        "South": ["Branch", "LHIO Makati", "LHIO Pasig", "LHIO Las pinas", "DMW LHIO paranaque", "Global Satellite Office"]
+      };
+
+      if (officeUsers[officeSelect.value]) {
+        officeUsers[officeSelect.value].forEach(user => {
+          const opt = document.createElement("option");
+          opt.value = user; opt.textContent = user;
+          endUserSelect.appendChild(opt);
+        });
+      }
+    }
+
+    // Add Row button logic (only once)
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      const tbody = document.querySelector("table tbody");
+      const lastRow = tbody.querySelector(".main-row:last-of-type");
+      if (!lastRow) return;
+
+      const newRow = lastRow.cloneNode(true);
+      newRow.querySelectorAll("input").forEach(i => i.value = "");
+      newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+      tbody.appendChild(newRow);
+    });
+
+    // Sorting table
+    const headers = document.querySelectorAll("thead th");
+    let sortDirection = {};
+    headers.forEach(header => {
+      header.addEventListener("click", () => {
+        const table = header.closest("table");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => r.children.length > 1);
+        const columnIndex = header.dataset.column;
+        const direction = sortDirection[columnIndex] === "asc" ? "desc" : "asc";
+        sortDirection[columnIndex] = direction;
+
+        rows.sort((a, b) => {
+          let aText = a.children[columnIndex].innerText.trim();
+          let bText = b.children[columnIndex].innerText.trim();
+          let aNum = parseFloat(aText.replace(/,/g, ""));
+          let bNum = parseFloat(bText.replace(/,/g, ""));
+          if (!isNaN(aNum) && !isNaN(bNum)) return direction === "asc" ? aNum - bNum : bNum - aNum;
+          return direction === "asc" ? aText.localeCompare(bText) : bText.localeCompare(aText);
+        });
+        rows.forEach(r => tbody.appendChild(r));
+      });
+    });
+
+    // Navigation active link
+    const currentPage = location.pathname.split("/").pop();
+    document.querySelectorAll(".nav a").forEach(link => link.classList.toggle("active", link.getAttribute("href") === currentPage));
+
+function exportToExcel() {
+        try {
+            if (typeof XLSX === 'undefined') {
+                alert('XLSX library is loading. Please wait a moment and try again.');
+                return;
+            }
+            
+            const table = document.querySelector('table');
+            if (!table) {
+                alert('Table not found!');
+                return;
+            }
+            
+            const ws = XLSX.utils.table_to_sheet(table);
+            
+            // Auto-fit columns
+            const colWidths = [];
+            table.querySelectorAll('tr').forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                cells.forEach((cell, idx) => {
+                    const width = Math.max((cell.textContent.length || 10) + 2, 10);
+                    colWidths[idx] = Math.max(colWidths[idx] || 0, width);
+                });
+            });
+            ws['!cols'] = colWidths.map(w => ({ wch: w }));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `purchase_request_${date}.xlsx`);
+            alert('Excel file downloaded successfully!');
+        } catch (e) {
+            alert('Error exporting to Excel: ' + e.message);
+            console.error(e);
+        }
+    }
+
+ 
+    
+
+    
+  </script>
+
+</body>
+</html>
