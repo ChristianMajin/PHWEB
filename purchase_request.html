@@ -267,6 +267,7 @@
 
   <!-- SCRIPTS -->
   <script>
+const STORAGE_KEY = "pr_table_data";
 const tbody = document.querySelector("table tbody");
 const addRowBtn = document.getElementById("addRowBtn");
 const searchInput = document.getElementById("tableSearch");
@@ -275,19 +276,72 @@ let clipboard = null;
 let undoStack = [];
 const MAX_UNDO = 20;
 
-// Load data when page loads
-window.addEventListener("DOMContentLoaded", () => {
-  // Keep original template row safe
-  const originalTemplate = document.querySelector(".main-row").cloneNode(true);
-  loadFromLocalStorage();
-  attachInputListeners();
-});
-
-function attachInputListeners() {
-  [...tbody.querySelectorAll("input, select")].forEach(el => {
-    el.addEventListener("change", saveToLocalStorage);
-    el.addEventListener("blur", saveToLocalStorage);
+/* =========================
+   SAVE TABLE DATA
+========================= */
+function saveTableData() {
+  const rows = [];
+  tbody.querySelectorAll("tr").forEach(row => {
+    const data = {
+      inputs: [...row.querySelectorAll("input")].map(i => i.value),
+      selects: [...row.querySelectorAll("select")].map(s => s.selectedIndex)
+    };
+    rows.push(data);
   });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+}
+
+/* =========================
+   LOAD TABLE DATA
+========================= */
+function loadTableData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+  
+  const rows = JSON.parse(saved);
+  
+  // Clear existing rows except the first
+  tbody.querySelectorAll("tr:not(.main-row)").forEach(r => r.remove());
+  
+  // Restore first row
+  const firstRow = tbody.querySelector(".main-row");
+  if (rows.length > 0) {
+    const firstInputs = firstRow.querySelectorAll("input");
+    const firstSelects = firstRow.querySelectorAll("select");
+    rows[0].inputs.forEach((val, idx) => {
+      if (firstInputs[idx]) firstInputs[idx].value = val;
+    });
+    rows[0].selects.forEach((idx, i) => {
+      if (firstSelects[i]) firstSelects[i].selectedIndex = idx;
+    });
+    const officeSelect = firstRow.querySelector(".office-select");
+    if (officeSelect && officeSelect.value) {
+      updateEndUser(officeSelect);
+    }
+  }
+  
+  // Restore additional rows
+  for (let i = 1; i < rows.length; i++) {
+    const row = getTemplateRow();
+    const inputs = row.querySelectorAll("input");
+    const selects = row.querySelectorAll("select");
+    
+    rows[i].inputs.forEach((val, idx) => {
+      if (inputs[idx]) inputs[idx].value = val;
+    });
+    rows[i].selects.forEach((idx, j) => {
+      if (selects[j]) selects[j].selectedIndex = idx;
+    });
+    
+    tbody.appendChild(row);
+    const officeSelect = row.querySelector(".office-select");
+    officeSelect.onchange = function() {
+      updateEndUser(this);
+    };
+    if (officeSelect && officeSelect.value) {
+      updateEndUser(officeSelect);
+    }
+  }
 }
 
 /* =========================
@@ -295,48 +349,6 @@ function attachInputListeners() {
 ========================= */
 function getTemplateRow() {
   return document.querySelector(".main-row").cloneNode(true);
-}
-
-/* =========================
-   SAVE/LOAD FROM LOCALSTORAGE
-========================= */
-function saveToLocalStorage() {
-  const data = [...tbody.rows].map(r => ({
-    inputs: [...r.querySelectorAll("input")].map(i => i.value),
-    selects: [...r.querySelectorAll("select")].map(s => s.value)
-  }));
-  localStorage.setItem("purchase_request_data", JSON.stringify(data));
-}
-
-function loadFromLocalStorage() {
-  const saved = localStorage.getItem("purchase_request_data");
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      if (data && data.length > 0) {
-        tbody.innerHTML = "";
-        data.forEach(rowData => {
-          const row = getTemplateRow();
-          if (row) {
-            row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
-            row.querySelectorAll("select").forEach((s, idx) => s.value = rowData.selects[idx] || "");
-            
-            // Reattach the office select change listener
-            const officeSelect = row.querySelector(".office-select");
-            officeSelect.onchange = function() {
-              updateEndUser(this);
-            };
-            
-            tbody.appendChild(row);
-          }
-        });
-      }
-    } catch (e) {
-      console.error("Error loading saved data:", e);
-      // If there's an error, clear the corrupted localStorage
-      localStorage.removeItem("purchase_request_data");
-    }
-  }
 }
 
 /* =========================
@@ -356,7 +368,7 @@ function addRow(focus = true) {
   
   tbody.appendChild(row);
   if (focus) row.querySelector("input, select")?.focus();
-  saveToLocalStorage();
+  saveTableData();
 }
 addRowBtn.onclick = () => addRow();
 
@@ -380,8 +392,7 @@ function restoreState(state) {
     row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = data.selects[idx] || 0);
     tbody.appendChild(row);
   });
-  attachInputListeners();
-  saveToLocalStorage();
+  saveTableData();
 }
 
 /* =========================
@@ -453,8 +464,7 @@ document.addEventListener("keydown", e => {
       row.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx] || "");
       row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx] || 0);
       tbody.appendChild(row);
-      attachInputListeners();
-      saveToLocalStorage();
+      saveTableData();
     }
 
     if (key === "z") {
@@ -468,6 +478,15 @@ document.addEventListener("keydown", e => {
   if (isField && ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
     e.preventDefault();
     moveFocus(active, e.key);
+  }
+});
+
+/* =========================
+   ADD AUTO-SAVE ON CHANGE
+========================= */
+document.addEventListener("change", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
+    saveTableData();
   }
 });
 
@@ -503,6 +522,67 @@ function updateEndUser(officeSelect) {
     });
   }
 }
+
+/* =========================
+   PAGE LOAD
+========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  loadTableData();
+  // Reattach listeners to initial row
+  const initialRow = tbody.querySelector(".main-row");
+  const officeSelect = initialRow.querySelector(".office-select");
+  officeSelect.onchange = function() {
+    updateEndUser(this);
+  };
+});
+
+/* =========================
+   SAVE BEFORE LEAVING PAGE
+========================= */
+window.addEventListener("beforeunload", () => {
+  saveTableData();
+});
+
+/* =========================
+   EXPORT FUNCTIONS
+========================= */
+function exportToExcel() {
+  const table = document.querySelector("table");
+  const workbook = XLSX.utils.table_to_book(table);
+  const filename = `purchase_request_${new Date().toISOString().split("T")[0]}.xlsx`;
+  XLSX.writeFile(workbook, filename);
+}
+
+function exportToCSV() {
+  const table = document.querySelector("table");
+  const csv = [];
+  const rows = table.querySelectorAll("tr");
+  
+  rows.forEach(row => {
+    const cols = row.querySelectorAll("td, th");
+    const csvRow = [];
+    cols.forEach(col => {
+      const input = col.querySelector("input, select");
+      csvRow.push(input ? input.value : col.textContent.trim());
+    });
+    csv.push(csvRow.join(","));
+  });
+  
+  const filename = `purchase_request_${new Date().toISOString().split("T")[0]}.csv`;
+  const link = document.createElement("a");
+  link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv.join("\n"));
+  link.download = filename;
+  link.click();
+}
+
+function exportToPDF() {
+  document.getElementById("paperSizeModal").style.display = "block";
+}
+
+function closePaperSizeDialog() {
+  document.getElementById("paperSizeModal").style.display = "none";
+}
+
 </script>
 <script>
 function confirmPaperSizeAndExport() {
@@ -521,6 +601,7 @@ function confirmPaperSizeAndExport() {
   const format = pageSizes[selected] || "a4";
 
   closePaperSizeDialog();
+  
 
   const element = document.querySelector("table");
 
@@ -542,26 +623,6 @@ function confirmPaperSizeAndExport() {
 
   html2pdf().set(opt).from(element).save();
 }
-
-  const format = pageSizes[selected] || "a4";
-
-  closePaperSizeDialog();
-
-  const element = document.querySelector("table");
-
-  const opt = {
-    margin: 10,
-    filename: `purchase_request_${new Date().toISOString().split("T")[0]}.pdf`,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, scrollX: 0, scrollY: 0 },
-    jsPDF: {
-      unit: "mm",
-      format: format,
-      orientation: "landscape"
-    }
-  };
-
-  html2pdf().set(opt).from(element).save();
 
 </script>
 
