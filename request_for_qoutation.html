@@ -187,6 +187,49 @@ td input:focus, td select:focus {
 
 <!-- ===================== SCRIPTS ===================== -->
 <script>
+/* ===== LOCALSTORAGE FUNCTIONS ===== */
+function saveToLocalStorage() {
+  const tbody = document.querySelector("tbody");
+  const data = [...tbody.rows].map(r => ({
+    inputs: [...r.querySelectorAll("input")].map(i => i.value)
+  }));
+  localStorage.setItem("request_for_quotation_data", JSON.stringify(data));
+}
+
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem("request_for_quotation_data");
+  if (saved) {
+    try {
+      const tbody = document.querySelector("tbody");
+      const data = JSON.parse(saved);
+      if (data.length > 0) {
+        tbody.innerHTML = "";
+        data.forEach(rowData => {
+          const row = tbody.querySelector(".main-row")?.cloneNode(true) || document.createElement("tr");
+          row.classList.add("main-row");
+          row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
+          tbody.appendChild(row);
+        });
+      }
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }
+}
+
+function attachInputListeners() {
+  document.querySelectorAll("input").forEach(el => {
+    el.addEventListener("change", saveToLocalStorage);
+    el.addEventListener("blur", saveToLocalStorage);
+  });
+}
+
+/* ===== LOAD DATA ON PAGE LOAD ===== */
+window.addEventListener("DOMContentLoaded", () => {
+  loadFromLocalStorage();
+  attachInputListeners();
+});
+
 /* ===== ADD ROW ===== */
 function addNewRow() {
   const tbody = document.querySelector("tbody");
@@ -194,6 +237,8 @@ function addNewRow() {
   row.querySelectorAll("input").forEach(i=>i.value="");
   tbody.appendChild(row);
   row.querySelector("input").focus();
+  attachInputListeners();
+  saveToLocalStorage();
 }
 document.getElementById("addRowBtn").onclick = addNewRow;
 

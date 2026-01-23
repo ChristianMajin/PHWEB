@@ -492,6 +492,50 @@ function updateEndUser(officeSelect) {
 </main>   
 
   <script>
+    /* ===== LOCALSTORAGE FUNCTIONS ===== */
+    function saveToLocalStorage() {
+      const tbody = document.querySelector("table tbody");
+      const data = [...tbody.rows].map(r => ({
+        inputs: [...r.querySelectorAll("input")].map(i => i.value),
+        selects: [...r.querySelectorAll("select")].map(s => s.value)
+      }));
+      localStorage.setItem("notice_of_award_data", JSON.stringify(data));
+    }
+
+    function loadFromLocalStorage() {
+      const saved = localStorage.getItem("notice_of_award_data");
+      if (saved) {
+        try {
+          const tbody = document.querySelector("table tbody");
+          const data = JSON.parse(saved);
+          if (data.length > 0) {
+            tbody.innerHTML = "";
+            data.forEach(rowData => {
+              const row = document.querySelector(".main-row").cloneNode(true);
+              row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
+              row.querySelectorAll("select").forEach((s, idx) => s.value = rowData.selects[idx] || "");
+              tbody.appendChild(row);
+            });
+          }
+        } catch (e) {
+          console.error("Error loading saved data:", e);
+        }
+      }
+    }
+
+    function attachInputListeners() {
+      document.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("change", saveToLocalStorage);
+        el.addEventListener("blur", saveToLocalStorage);
+      });
+    }
+
+    /* ===== LOAD DATA ON PAGE LOAD ===== */
+    window.addEventListener("DOMContentLoaded", () => {
+      loadFromLocalStorage();
+      attachInputListeners();
+    });
+
     // Export to Excel (.xlsx)
     function exportToExcel() {
         try {
@@ -589,6 +633,8 @@ function confirmPaperSizeAndExport() {
       newRow.querySelectorAll("input").forEach(i => i.value = "");
       newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
       tbody.appendChild(newRow);
+      attachInputListeners();
+      saveToLocalStorage();
     });
             
             // Auto-fit columns
@@ -749,6 +795,8 @@ function confirmPaperSizeAndExport() {
             newRow.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx]);
             newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx]);
             table.appendChild(newRow);
+            attachInputListeners();
+            saveToLocalStorage();
           }
           break;
         case "z": // Ctrl+Z -> undo

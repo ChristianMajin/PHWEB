@@ -275,11 +275,62 @@ let clipboard = null;
 let undoStack = [];
 const MAX_UNDO = 20;
 
+// Load data when page loads
+window.addEventListener("DOMContentLoaded", () => {
+  loadFromLocalStorage();
+  attachInputListeners();
+});
+
+function attachInputListeners() {
+  [...tbody.querySelectorAll("input, select")].forEach(el => {
+    el.addEventListener("change", saveToLocalStorage);
+    el.addEventListener("blur", saveToLocalStorage);
+  });
+}
+
 /* =========================
    ROW TEMPLATE
 ========================= */
 function getTemplateRow() {
   return document.querySelector(".main-row").cloneNode(true);
+}
+
+/* =========================
+   SAVE/LOAD FROM LOCALSTORAGE
+========================= */
+function saveToLocalStorage() {
+  const data = [...tbody.rows].map(r => ({
+    inputs: [...r.querySelectorAll("input")].map(i => i.value),
+    selects: [...r.querySelectorAll("select")].map(s => s.value)
+  }));
+  localStorage.setItem("purchase_request_data", JSON.stringify(data));
+}
+
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem("purchase_request_data");
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.length > 0) {
+        tbody.innerHTML = "";
+        data.forEach(rowData => {
+          const row = getTemplateRow();
+          row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
+          row.querySelectorAll("select").forEach((s, idx) => s.value = rowData.selects[idx] || "");
+          
+          // Reattach the office select change listener
+          const officeSelect = row.querySelector(".office-select");
+          officeSelect.onchange = function() {
+            updateEndUser(this);
+          };
+          
+          tbody.appendChild(row);
+        });
+      }
+    } catch (e) {
+      console.error("Error loading saved data:", e);
+    }
+  }
 }
 
 /* =========================
@@ -299,6 +350,7 @@ function addRow(focus = true) {
   
   tbody.appendChild(row);
   if (focus) row.querySelector("input, select")?.focus();
+  saveToLocalStorage();
 }
 addRowBtn.onclick = () => addRow();
 
@@ -322,6 +374,8 @@ function restoreState(state) {
     row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = data.selects[idx] || 0);
     tbody.appendChild(row);
   });
+  attachInputListeners();
+  saveToLocalStorage();
 }
 
 /* =========================
@@ -393,6 +447,8 @@ document.addEventListener("keydown", e => {
       row.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx] || "");
       row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx] || 0);
       tbody.appendChild(row);
+      attachInputListeners();
+      saveToLocalStorage();
     }
 
     if (key === "z") {
