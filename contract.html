@@ -247,6 +247,59 @@ td input:focus {
   border-color: #5aa300;
   box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
 }
+/* Paper Size Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: #fff;
+  width: 420px;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.modal-header {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.paper-size-group label {
+  display: block;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.modal-buttons {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.modal-buttons button {
+  padding: 6px 12px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #ccc;
+  border: none;
+}
+
+.btn-confirm {
+  background: #5aa300;
+  color: #fff;
+  border: none;
+}
 
 
 
@@ -370,31 +423,23 @@ function updateEndUser(officeSelect) {
     <table>
      <thead>
   <tr>
-    <th data-column="0">PR #</th>
-    <th data-column="1">Date Received</th>
-    <th data-column="2">Expense Code</th>
-    <th data-column="3">Particulars</th>
-    <th data-column="4">ABC</th>
-    <th data-column="5">End User</th>
-    <th data-column="6">Office</th>
-    <th data-column="7">Procurement Mode</th>
-    <th data-column="8">Processor</th>
-    <th data-column="9">Status</th>
+    <th data-column="0">Control #</th>
+    <th data-column="1">Ref PR#</th>
+    <th data-column="2">Date Prepared</th>
+    <th data-column="3">Date Approved</th>
+    <th data-column="4">Date Issued</th>
+    <th data-column="5">Date Conformed</th>
   </tr>
 </thead>
 
 <tbody>
   <tr class="main-row">
-    <td><input type="text" placeholder="PR #" /></td>
-    <td><input type="date" /></td>
-    <td><input type="text" placeholder="Expense Code" /></td>
-    <td><input type="text" placeholder="Particulars" /></td>
-    <td><input type="number" placeholder="ABC" /></td>
-    <td><input type="text" placeholder="End User" /></td>
-    <td><input type="text" placeholder="Office" /></td>
-    <td><input type="text" placeholder="Procurement Mode" /></td>
-    <td><input type="text" placeholder="Processor" /></td>
-    <td><input type="text" placeholder="Status" /></td>
+    <td><input type="number" placeholder="Control #" /></td>
+    <td><input type="number" placeholder=" Ref PR#1" /></td>
+    <td><input type="date" placeholder="Date Prepared" /></td>
+    <td><input type="date" placeholder="Date Approved" /></td>
+    <td><input type="date" placeholder="Date Issued" /></td>
+    <td><input type="date" placeholder="Date Conformed" /></td>
   </tr>
 </tbody>
 
@@ -402,16 +447,12 @@ function updateEndUser(officeSelect) {
  
 
     <div class="export-buttons">
-      <button class="btn btn-success" onclick="exportToExcel()">
-          <i class="fas fa-file-excel"></i> Save to Excel (.xlsx)
-      </button>
-      <button class="btn btn-danger" onclick="exportToPDF()">
-          <i class="fas fa-file-pdf"></i> Save to PDF
-      </button>
-      <button class="btn btn-info" onclick="exportToCSV()">
-          <i class="fas fa-file-csv"></i> Save to CSV
-      </button>
-   </div>
+  <button class="btn btn-success" onclick="exportToExcel()">Save to Excel (.xlsx)</button>
+  <button class="btn btn-danger" onclick="exportToPDF()">Save to PDF</button>
+    <button class="btn btn-success" onclick="(exportToCSV)">Save to CSV</button>
+  <button id="addRowBtn" style="margin:9px 0; padding:5px 10px; font-size:10px; cursor:pointer;">+</button>
+</div>
+
 </main>   
 
   <script>
@@ -455,22 +496,36 @@ function updateEndUser(officeSelect) {
 
     // Export to PDF
     function exportToPDF() {
-        try {
-            const element = document.querySelector('table');
-            const opt = {
-                margin: 10,
-                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        } catch (e) {
-            alert('Error exporting to PDF: ' + e.message);
-            console.error(e);
-        }
-    }
+  document.getElementById("paperSizeModal").style.display = "block";
+}
 
+function closePaperSizeDialog() {
+  document.getElementById("paperSizeModal").style.display = "none";
+}
+
+function confirmPaperSizeAndExport() {
+  const selectedSize = document.querySelector(
+    'input[name="paperSize"]:checked'
+  ).value;
+
+  closePaperSizeDialog();
+
+  const element = document.querySelector("table");
+
+  const opt = {
+    margin: 10,
+    filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      orientation: "landscape",
+      unit: "mm",
+      format: selectedSize
+    }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
     // Export to CSV
     function exportToCSV() {
         try {
@@ -486,6 +541,17 @@ function updateEndUser(officeSelect) {
             }
             
             const ws = XLSX.utils.table_to_sheet(table);
+             // Add Row button logic (only once)
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      const tbody = document.querySelector("table tbody");
+      const lastRow = tbody.querySelector(".main-row:last-of-type");
+      if (!lastRow) return;
+
+      const newRow = lastRow.cloneNode(true);
+      newRow.querySelectorAll("input").forEach(i => i.value = "");
+      newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+      tbody.appendChild(newRow);
+    });
             
             // Auto-fit columns
             const colWidths = [];
@@ -519,13 +585,162 @@ function updateEndUser(officeSelect) {
     }
   });
 </script>
+<!-- Paper Size Selection Modal -->
+<div id="paperSizeModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Select Paper Size for PDF</div>
+
+    <div class="paper-size-group">
+      <label><input type="radio" name="paperSize" value="a4" checked> A4 (210 × 297 mm)</label>
+      <label><input type="radio" name="paperSize" value="letter"> Letter (8.5 × 11 in)</label>
+      <label><input type="radio" name="paperSize" value="legal"> Legal (8.5 × 14 in)</label>
+      <label><input type="radio" name="paperSize" value="a3"> A3 (297 × 420 mm)</label>
+      <label><input type="radio" name="paperSize" value="a5"> A5 (148 × 210 mm)</label>
+      <label><input type="radio" name="paperSize" value="tabloid"> Tabloid (11 × 17 in)</label>
+    </div>
+
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closePaperSizeDialog()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmPaperSizeAndExport()">Export PDF</button>
+    </div>
+  </div>
+</div>
+
 
 </body>
-<footer>
-  <div class="footer">
-  @OJT'S PROJECT WEBSITE 2026
-</div>
-</footer>
+<script>
+  // Add Row button functionality
+  document.getElementById("addRowBtn").addEventListener("click", () => {
+    const tbody = document.querySelector("table tbody");
+    const lastRow = tbody.querySelector("tr:last-of-type");
+    if (!lastRow) return;
+
+    // Clone the last row
+    const newRow = lastRow.cloneNode(true);
+
+    // Reset all input fields
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+
+    // Reset all selects to default
+    newRow.querySelectorAll("select").forEach(select => select.selectedIndex = 0);
+
+    tbody.appendChild(newRow);
+  });
+</script>
+
+<script>
+  const addRowBtn = document.getElementById("addRowBtn");
+  const table = document.querySelector("table tbody");
+
+  let clipboard = null; // for Ctrl+C/Ctrl+V
+  let undoStack = [];   // for undo
+
+  // Save table state for undo
+  function saveState() {
+    const rowsData = Array.from(table.rows).map(r => {
+      return {
+        inputs: Array.from(r.querySelectorAll("input")).map(i => i.value),
+        selects: Array.from(r.querySelectorAll("select")).map(s => s.selectedIndex)
+      };
+    });
+    undoStack.push(rowsData);
+    if (undoStack.length > 20) undoStack.shift();
+  }
+
+  // Restore table state
+  function restoreState(state) {
+    table.innerHTML = "";
+    state.forEach(rowData => {
+      const newRow = table.querySelector(".main-row").cloneNode(true);
+      newRow.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx]);
+      newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = rowData.selects[idx]);
+      table.appendChild(newRow);
+    });
+  }
+
+  // Arrow key navigation
+  function moveFocus(current, direction) {
+    const cells = Array.from(current.closest("tr").querySelectorAll("input, select"));
+    let index = cells.indexOf(current);
+    const row = current.closest("tr");
+    let newCell;
+
+    switch(direction) {
+      case "ArrowRight":
+        if (index < cells.length - 1) newCell = cells[index + 1];
+        break;
+      case "ArrowLeft":
+        if (index > 0) newCell = cells[index - 1];
+        break;
+      case "ArrowDown":
+        const nextRow = row.nextElementSibling;
+        if (nextRow) newCell = nextRow.querySelectorAll("input, select")[index];
+        break;
+      case "ArrowUp":
+        const prevRow = row.previousElementSibling;
+        if (prevRow) newCell = prevRow.querySelectorAll("input, select")[index];
+        break;
+    }
+
+    if (newCell) {
+      newCell.focus();
+      if (newCell.tagName === "INPUT") newCell.select();
+    }
+  }
+
+  document.addEventListener("keydown", function(e) {
+    const active = document.activeElement;
+    const isInput = active.tagName === "INPUT" || active.tagName === "SELECT";
+
+    if (e.ctrlKey) {
+      switch (e.key.toLowerCase()) {
+        case "f": // Ctrl+F -> add row
+          e.preventDefault();
+          saveState();
+          addRowBtn.click();
+          break;
+        case "c": // Ctrl+C -> copy row
+          e.preventDefault();
+          if (isInput) {
+            const row = active.closest("tr");
+            if (row) {
+              clipboard = {
+                inputs: Array.from(row.querySelectorAll("input")).map(i => i.value),
+                selects: Array.from(row.querySelectorAll("select")).map(s => s.selectedIndex)
+              };
+              alert("Row copied!");
+            }
+          }
+          break;
+        case "v": // Ctrl+V -> paste row
+          e.preventDefault();
+          if (clipboard) {
+            saveState();
+            const newRow = table.querySelector(".main-row").cloneNode(true);
+            newRow.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx]);
+            newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx]);
+            table.appendChild(newRow);
+          }
+          break;
+        case "z": // Ctrl+Z -> undo
+          e.preventDefault();
+          if (undoStack.length > 0) {
+            const lastState = undoStack.pop();
+            restoreState(lastState);
+          }
+          break;
+      }
+    } else if (isInput) {
+      // Arrow keys navigation
+      const arrows = ["ArrowRight","ArrowLeft","ArrowUp","ArrowDown"];
+      if (arrows.includes(e.key)) {
+        e.preventDefault();
+        moveFocus(active, e.key);
+      }
+    }
+  });
+</script>
+
 
 
 </html>

@@ -249,6 +249,59 @@ td input:focus {
 }
 
 
+/* ===== Paper Size Modal ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: #fff;
+  width: 420px;
+  margin: 12% auto;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.modal-header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.paper-size-group label {
+  display: block;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.modal-buttons {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.modal-buttons button {
+  padding: 6px 12px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #ccc;
+  border: none;
+}
+
+.btn-confirm {
+  background: #5aa300;
+  color: #fff;
+  border: none;
+}
 
 
   </style>
@@ -376,96 +429,36 @@ function updateEndUser(officeSelect) {
     <th data-column="3">Contact Person</th>
     <th data-column="4">Contact Number</th>
     <th data-column="5">Email Address</th>
-    <th data-column="6">Documentary Requirements</th>
+    <th data-column="6">Docs req</th>
   </tr>
 </thead>
 
+<tbody>
+  <tr class="main-row">
+    <td><input type="number" placeholder="Supplier ID" /></td>
+    <td><input type="text" placeholder="Supplier Name" /></td>
+    <td><input type="text" placeholder="Address" /></td>
+    <td><input type="text" placeholder="Contact Person" /></td>
+    <td><input type="number" placeholder="Contact Number" /></td>
+    <td><input type="email" placeholder="Email Address" /></td>
+    <td><input type="text" placeholder="Docs req" /></td>
+  </tr>
+</tbody>
+
       <tbody>
 
-  <tr class="main-row">
-  <td><input type="text" placeholder="PR #" /></td>
-  <td><input type="date" /></td>
-  <td>
-  <select class="expense-select">
-    <option value="">-- Select Expense Code --</option>
-    <option value="EC1001">EC1001 – Office Supplies</option>
-    <option value="EC1002">EC1002 – IT Equipment</option>
-    <option value="EC1003">EC1003 – Furniture</option>
-    <option value="EC1004">EC1004 – Maintenance</option>
-    <option value="EC1005">EC1005 – Training / Seminar</option>
-  </select>
-</td>
-
-  <td><input type="text" placeholder="Particulars" /></td>
-  <td><input type="number" placeholder="ABC" /></td>
-  <td>
-  <select class="enduser-select">
-    <option value="">-- Select End User --</option>
-  </select>
-</td>
-
-  <td>
-  <select class="office-select" onchange="updateEndUser(this)">
-    <option value="">-- Select Office --</option>
-    <option value="OVP">OVP</option>
-    <option value="North">North</option>
-    <option value="Central">Central</option>
-    <option value="South">South</option>
-  </select>
-</td>
-
-
-  <td>
-    <select class="procurement-select">
-      <option value="">-- Select Mode --</option>
-      <option value="Sec27">Sec. 27 – Competitive Bidding</option>
-      <option value="Sec31">Sec. 31 – Direct Contracting</option>
-      <option value="Sec32">Sec. 32 – Direct Acquisition</option>
-      <option value="Sec33">Sec. 33 – Repeat Order</option>
-      <option value="Sec34">Sec. 34 – Small Value Procurement</option>
-      <option value="Sec351">Sec. 35.1 – Negotiated (2 Failed Bids)</option>
-      <option value="Sec355">Sec. 35.5 – Agency to Agency</option>
-      <option value="Sec356">Sec. 35.6 – Scientific / Artistic</option>
-      <option value="Sec359">Sec. 35.9 – Lease of Venue</option>
-    </select>
-  </td>
-  <td>
-    <select class="processor-select">
-      <option value="">-- Select Processor --</option>
-      <option value="Jennie">Jennie</option>
-      <option value="Jerve">Jerve</option>
-      <option value="Jeorge">Jeorge</option>
-      <option value="Ofelia">Ofelia</option>
-    </select>
-  </td>
-  <td>
-    <select class="status-select">
-      <option value="">-- Select Processor --</option>
-      <option value="">-- Status --</option>
-      <option value="Ongoing">Ongoing</option>
-      <option value="RTS">RTS</option>
-      <option value="Completed">Completed</option>
-    </select>
-  </td>
-</tr>
-
-
+ 
 </tbody>
 
     </table>
  
-
-    <div class="export-buttons">
-      <button class="btn btn-success" onclick="exportToExcel()">
-          <i class="fas fa-file-excel"></i> Save to Excel (.xlsx)
-      </button>
-      <button class="btn btn-danger" onclick="exportToPDF()">
-          <i class="fas fa-file-pdf"></i> Save to PDF
-      </button>
-      <button class="btn btn-info" onclick="exportToCSV()">
-          <i class="fas fa-file-csv"></i> Save to CSV
-      </button>
-   </div>
+<div class="export-buttons">
+        <button class="btn btn-success" onclick="exportToExcel()">Save to Excel (.xlsx)</button>
+        <button class="btn btn-danger" onclick="exportToPDF()">Save to PDF</button>
+        <button class="btn btn-info" onclick="exportToCSV()">Save to CSV</button>
+        <button id="addRowBtn" style="margin:9px 0; padding:5px 10px; font-size:10px; cursor:pointer;">+</button>
+      </div>
+    </div>
 </main>   
 
   <script>
@@ -509,21 +502,36 @@ function updateEndUser(officeSelect) {
 
     // Export to PDF
     function exportToPDF() {
-        try {
-            const element = document.querySelector('table');
-            const opt = {
-                margin: 10,
-                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        } catch (e) {
-            alert('Error exporting to PDF: ' + e.message);
-            console.error(e);
-        }
+  document.getElementById("paperSizeModal").style.display = "block";
+}
+
+function closePaperSizeDialog() {
+  document.getElementById("paperSizeModal").style.display = "none";
+}
+
+function confirmPaperSizeAndExport() {
+  const selectedSize = document.querySelector(
+    'input[name="paperSize"]:checked'
+  ).value;
+
+  closePaperSizeDialog();
+
+  const element = document.querySelector("table");
+
+  const opt = {
+    margin: 10,
+    filename: `supplier_directory_${new Date().toISOString().split('T')[0]}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: {
+      orientation: "landscape",
+      unit: "mm",
+      format: selectedSize
     }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
 
     // Export to CSV
     function exportToCSV() {
@@ -540,6 +548,17 @@ function updateEndUser(officeSelect) {
             }
             
             const ws = XLSX.utils.table_to_sheet(table);
+             // Add Row button logic (only once)
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      const tbody = document.querySelector("table tbody");
+      const lastRow = tbody.querySelector(".main-row:last-of-type");
+      if (!lastRow) return;
+
+      const newRow = lastRow.cloneNode(true);
+      newRow.querySelectorAll("input").forEach(i => i.value = "");
+      newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+      tbody.appendChild(newRow);
+    });
             
             // Auto-fit columns
             const colWidths = [];
@@ -575,11 +594,59 @@ function updateEndUser(officeSelect) {
 </script>
 
 </body>
-<footer>
-  <div class="footer">
-  @OJT'S PROJECT WEBSITE 2026
-</div>
-</footer>
 
+<script>
+  // Function to handle adding new rows
+  const addRowBtn = document.getElementById("addRowBtn");
+
+  addRowBtn.addEventListener("click", () => {
+    const tbody = document.querySelector("table tbody");
+    const lastRow = tbody.querySelector(".main-row:last-of-type");
+    if (!lastRow) return;
+
+    // Clone last row
+    const newRow = lastRow.cloneNode(true);
+
+    // Clear all input fields
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+
+    // Reset all select dropdowns
+    newRow.querySelectorAll("select").forEach(select => select.selectedIndex = 0);
+
+    // Reattach dynamic Office -> End User logic if applicable
+    const officeSelect = newRow.querySelector(".office-select");
+    if (officeSelect) {
+      officeSelect.addEventListener("change", () => updateEndUser(officeSelect));
+    }
+
+    tbody.appendChild(newRow);
+  });
+
+  // Ensure any existing rows have Office -> End User logic
+  document.querySelectorAll(".office-select").forEach(select => {
+    select.addEventListener("change", () => updateEndUser(select));
+  });
+</script>
+
+<!-- Paper Size Selection Modal -->
+<div id="paperSizeModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Select Paper Size for PDF</div>
+
+    <div class="paper-size-group">
+      <label><input type="radio" name="paperSize" value="a4" checked> A4 (210 × 297 mm)</label>
+      <label><input type="radio" name="paperSize" value="letter"> Letter (8.5 × 11 in)</label>
+      <label><input type="radio" name="paperSize" value="legal"> Legal (8.5 × 14 in)</label>
+      <label><input type="radio" name="paperSize" value="a3"> A3 (297 × 420 mm)</label>
+      <label><input type="radio" name="paperSize" value="a5"> A5 (148 × 210 mm)</label>
+      <label><input type="radio" name="paperSize" value="tabloid"> Tabloid (11 × 17 in)</label>
+    </div>
+
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closePaperSizeDialog()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmPaperSizeAndExport()">Export PDF</button>
+    </div>
+  </div>
+</div>
 
 </html>

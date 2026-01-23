@@ -6,20 +6,92 @@
   <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background-color: #ffffff; color: #000; }
-    .status-select, .procurement-select, .processor-select, .office-select, .expense-select {
-      width: 100%; height: 26px; font-size: 12.5px; padding: 2px 6px; border: 1px solid #bfbfbf; border-radius: 3px; background-color: #fff; cursor: pointer;
+
+    /* ----- Header & Navbar ----- */
+    .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* added */
+  background-color: #8fe04e;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+
+    .logo {
+      display: flex;
+      align-items: center;
+      margin-right: 50px;
+      background: #fff;
+      padding: 5px 15px;
+      border-radius: 40px;
+      transition: transform 0.3s ease;
     }
-    .status-select:focus, .procurement-select:focus, .processor-select:focus, .office-select:focus, .expense-select:focus {
-      outline: none; border-color: #5aa300; box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
-    }
-    .header { display: flex; align-items: center; background-color: #8fe04e; padding: 10px 20px; }
-    .logo { display: flex; align-items: center; margin-right: 30px; background: #fff; padding: 5px 15px; border-radius: 40px; }
+
+    .logo:hover { transform: scale(1.05); }
     .logo img { height: 45px; margin-right: 10px; }
     .logo span { font-weight: bold; font-size: 14px; }
-    .nav { display: flex; gap: 30px; font-weight: bold; font-size: 14px; }
-    .nav a { text-decoration: none; color: #000; padding-bottom: 3px; }
-    .nav a.active { border-bottom: 3px solid #000; }
-    .container { padding: 20px; }
+
+    .nav {
+      display: flex;
+      gap: 30px;
+      font-weight: bold;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #000;
+      padding: 5px 0;
+      position: relative;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 3px;
+      background-color: #000;
+      left: 0;
+      bottom: -2px;
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .nav a:hover {
+      color: #3c6;
+      transform: scale(1.05);
+    }
+
+    .nav a:hover::after {
+      width: 100%;
+    }
+
+    .nav a.active {
+      color: #000;
+    }
+
+    .nav a.active::after {
+      width: 100%;
+    }
+    .admin-label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #000;
+  margin-left: auto; /* pushes it to the right */
+  background-color: #fff;
+  padding: 5px 10px;
+  border-radius: 20px;
+}
+
+
+    /* ----- Table & Inputs ----- */
     table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 13px; }
     thead th { border: 1px solid #bfbfbf; background-color: #f2f2f2; padding: 6px; text-align: left; font-weight: bold; cursor: pointer; }
     thead th:hover { background-color: #e5f7d4; }
@@ -27,93 +99,36 @@
     tbody tr:hover { background-color: #eaf4ff; }
     td input { width: 100%; border: none; padding: 4px 6px; font-size: 12.5px; outline: none; }
     td input:focus { background-color: #f2fff0; border: 1px solid #5aa300; }
-    .details-row { display: none; background-color: #f9fff2; }
-    .details-container { padding: 12px; }
-    .inner-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .inner-table th { background-color: #e5f7d4; border: 1px solid #bfbfbf; padding: 6px; text-align: left; }
-    .inner-table td { border: 1px solid #d9d9d9; padding: 6px; }
+
+    select { width: 100%; padding: 4px 6px; font-size: 13px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; }
+    .status-select, .procurement-select, .processor-select, .office-select, .expense-select { cursor: pointer; }
+    .status-select:focus, .procurement-select:focus, .processor-select:focus, .office-select:focus, .expense-select:focus { outline: none; border-color: #5aa300; box-shadow: 0 0 2px rgba(90, 163, 0, 0.6); }
+
     .footer { background-color: #8fe04e; text-align: center; padding: 10px; font-weight: bold; margin-top: 40px; }
+
+    /* ----- Paper Size Modal ----- */
+    .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); }
+    .modal-content { background: #fff; width: 420px; margin: 10% auto; padding: 20px; border-radius: 6px; }
+    .modal-header { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+    .paper-size-group label { display: block; margin: 6px 0; font-size: 14px; }
+    .modal-buttons { margin-top: 15px; text-align: right; }
+    .modal-buttons button { padding: 6px 12px; margin-left: 6px; cursor: pointer; }
+    .btn-cancel { background: #ccc; border: none; }
+    .btn-confirm { background: #5aa300; color: #fff; border: none; }
+
+    /* ----- Export Buttons ----- */
+    .export-buttons { margin: 15px 0; }
+    .export-buttons button { padding: 6px 12px; margin-right: 6px; cursor: pointer; border: none; border-radius: 4px; font-size: 13px; transition: transform 0.2s ease; }
+    .export-buttons button:hover { transform: scale(1.05); }
+    .btn-success { background-color: #5aa300; color: #fff; }
+    .btn-danger { background-color: #d9534f; color: #fff; }
+    .btn-info { background-color: #5bc0de; color: #fff; }
+
   </style>
 
-  <!-- Export Libraries -->
+  <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
-  // All your functions like exportToExcel(), exportToPDF(), etc.
-     // Export to PDF
-    function exportToPDF() {
-        try {
-            const element = document.querySelector('table');
-            const opt = {
-                margin: 10,
-                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        } catch (e) {
-            alert('Error exporting to PDF: ' + e.message);
-            console.error(e);
-        }
-        
-         // Export to Excel (.xlsx)
-    function exportToExcel() {
-    try {
-        if (typeof XLSX === 'undefined') {
-            alert('XLSX library is loading. Please wait a moment and try again.');
-            return;
-        }
-
-        const table = document.querySelector('table');
-        if (!table) {
-            alert('Table not found!');
-            return;
-        }
-
-        // Prepare data
-        const data = [];
-        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
-        data.push(headers);
-
-        table.querySelectorAll('tbody tr').forEach(row => {
-            const rowData = [];
-            row.querySelectorAll('td').forEach(td => {
-                const input = td.querySelector('input');
-                const select = td.querySelector('select');
-                if (input) rowData.push(input.value);
-                else if (select) rowData.push(select.value);
-                else rowData.push(td.innerText.trim());
-            });
-            data.push(rowData);
-        });
-
-        // Convert to worksheet
-        const ws = XLSX.utils.aoa_to_sheet(data);
-
-        // Auto-fit columns
-        const colWidths = headers.map((h, i) => {
-            let max = h.length;
-            data.forEach(r => { max = Math.max(max, (r[i] ? r[i].toString().length : 0)); });
-            return { wch: max + 2 };
-        });
-        ws['!cols'] = colWidths;
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-        const date = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(wb, `purchase_request_${date}.xlsx`);
-        alert('Excel file downloaded successfully!');
-    } catch (e) {
-        alert('Error exporting to Excel: ' + e.message);
-        console.error(e);
-    }
-}
-
-    }
-    
-</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -131,10 +146,19 @@
       <a href="contract.html">CONTRACT</a>
       <a href="supplier_directory.html">SUPPLIER DIRECTORY</a>
     </nav>
+    <span class="admin-label">ADMIN</span>
+
   </div>
 
   <main class="content">
     <div class="container">
+      <input
+  id="tableSearch"
+  type="text"
+  placeholder="🔍 Search any column..."
+  style="margin-bottom:10px; padding:6px 10px; width:260px; font-size:13px;"
+>
+
       <table>
         <thead>
           <tr>
@@ -151,7 +175,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Only include your rows here; multiple rows are okay -->
           <tr class="main-row">
             <td><input type="text" placeholder="Control #" /></td>
             <td><input type="date" /></td>
@@ -165,7 +188,6 @@
                 <option value="EC1005">EC1005 – Training / Seminar</option>
               </select>
             </td>
-            <td><input type="date" placeholder="Date Received" /></td>
             <td><input type="text" placeholder="Particulars" /></td>
             <td><input type="number" placeholder="ABC" /></td>
             <td>
@@ -190,10 +212,6 @@
                 <option value="Sec32">Sec. 32 – Direct Acquisition</option>
                 <option value="Sec33">Sec. 33 – Repeat Order</option>
                 <option value="Sec34">Sec. 34 – Small Value Procurement</option>
-                <option value="Sec351">Sec. 35.1 – Negotiated (2 Failed Bids)</option>
-                <option value="Sec355">Sec. 35.5 – Agency to Agency</option>
-                <option value="Sec356">Sec. 35.6 – Scientific / Artistic</option>
-                <option value="Sec359">Sec. 35.9 – Lease of Venue</option>
               </select>
             </td>
             <td>
@@ -208,7 +226,7 @@
             <td>
               <select class="status-select">
                 <option value="">-- Status --</option>
-                <option value="Ongoing">Ongoing</option>
+                <option value="Ongoing">Ongoing</option>  
                 <option value="RTS">RTS</option>
                 <option value="Completed">Completed</option>
               </select>
@@ -221,121 +239,270 @@
         <button class="btn btn-success" onclick="exportToExcel()">Save to Excel (.xlsx)</button>
         <button class="btn btn-danger" onclick="exportToPDF()">Save to PDF</button>
         <button class="btn btn-info" onclick="exportToCSV()">Save to CSV</button>
-        <button id="addRowBtn" style="margin:9px 0; padding:5px 10px; font-size:10px; cursor:pointer;">+</button>
+        <button id="addRowBtn">+</button>
       </div>
     </div>
   </main>
 
-  <footer>
-    <div class="footer">@OJT'S PROJECT WEBSITE 2026</div>
-  </footer>
+ 
+
+  <!-- Paper Size Modal -->
+  <div id="paperSizeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">Select Paper Size for PDF</div>
+      <div class="paper-size-group">
+        <label><input type="radio" name="paperSize" value="a4" checked> A4 (210 × 297 mm)</label>
+        <label><input type="radio" name="paperSize" value="letter"> Letter (8.5 × 11 in)</label>
+        <label><input type="radio" name="paperSize" value="legal"> Legal (8.5 × 14 in)</label>
+        <label><input type="radio" name="paperSize" value="a3"> A3 (297 × 420 mm)</label>
+        <label><input type="radio" name="paperSize" value="a5"> A5 (148 × 210 mm)</label>
+        <label><input type="radio" name="paperSize" value="tabloid"> Tabloid (11 × 17 in)</label>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-cancel" onclick="closePaperSizeDialog()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmPaperSizeAndExport()">Export PDF</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPTS -->
   <script>
-    // Office -> End User logic
-    function updateEndUser(officeSelect) {
-      const row = officeSelect.closest("tr");
-      const endUserSelect = row.querySelector(".enduser-select");
-      endUserSelect.innerHTML = '<option value="">-- Select End User --</option>';
+const tbody = document.querySelector("table tbody");
+const addRowBtn = document.getElementById("addRowBtn");
+const searchInput = document.getElementById("tableSearch");
 
-      const officeUsers = {
-        "OVP": ["OVP", "ITMU", "Legal", "HCDMD", "PAU", "MSD", "HRMU", "PSMU", "FMS", "CASHIERING", "SBAC"],
-        "North": ["Branch", "LHIO Caloocan", "Mandaluyong", "Manila", "DMW OFp", "Valenzuela"],
-        "Central": ["Branch", "LHIO Quezon City", "LHIO Fairview", "LHIO Rizal"],
-        "South": ["Branch", "LHIO Makati", "LHIO Pasig", "LHIO Las pinas", "DMW LHIO paranaque", "Global Satellite Office"]
+let clipboard = null;
+let undoStack = [];
+const MAX_UNDO = 20;
+
+/* =========================
+   ROW TEMPLATE
+========================= */
+function getTemplateRow() {
+  return document.querySelector(".main-row").cloneNode(true);
+}
+
+/* =========================
+   ADD ROW
+========================= */
+function addRow(focus = true) {
+  saveState();
+  const row = getTemplateRow();
+  row.querySelectorAll("input").forEach(i => i.value = "");
+  row.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+  
+  // Reattach the office select change listener for the new row
+  const officeSelect = row.querySelector(".office-select");
+  officeSelect.onchange = function() {
+    updateEndUser(this);
+  };
+  
+  tbody.appendChild(row);
+  if (focus) row.querySelector("input, select")?.focus();
+}
+addRowBtn.onclick = () => addRow();
+
+/* =========================
+   UNDO SYSTEM
+========================= */
+function saveState() {
+  const snapshot = [...tbody.rows].map(r => ({
+    inputs: [...r.querySelectorAll("input")].map(i => i.value),
+    selects: [...r.querySelectorAll("select")].map(s => s.selectedIndex)
+  }));
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+}
+
+function restoreState(state) {
+  tbody.innerHTML = "";
+  state.forEach(data => {
+    const row = getTemplateRow();
+    row.querySelectorAll("input").forEach((i, idx) => i.value = data.inputs[idx] || "");
+    row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = data.selects[idx] || 0);
+    tbody.appendChild(row);
+  });
+}
+
+/* =========================
+   ARROW KEY NAVIGATION
+========================= */
+function moveFocus(el, key) {
+  const row = el.closest("tr");
+  const cells = [...row.querySelectorAll("input, select")];
+  const index = cells.indexOf(el);
+
+  let target;
+  if (key === "ArrowRight") target = cells[index + 1];
+  if (key === "ArrowLeft") target = cells[index - 1];
+  if (key === "ArrowDown") {
+    const next = row.nextElementSibling;
+    target = next?.querySelectorAll("input, select")[index];
+  }
+  if (key === "ArrowUp") {
+    const prev = row.previousElementSibling;
+    target = prev?.querySelectorAll("input, select")[index];
+  }
+
+  if (target) {
+    target.focus();
+    if (target.tagName === "INPUT") target.select();
+  }
+}
+
+/* =========================
+   SEARCH FILTER
+========================= */
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
+  [...tbody.rows].forEach(row => {
+    const match = row.innerText.toLowerCase().includes(q);
+    row.style.display = match ? "" : "none";
+  });
+});
+
+/* =========================
+   KEYBOARD SHORTCUTS
+========================= */
+document.addEventListener("keydown", e => {
+  const active = document.activeElement;
+  const isField = active && (active.tagName === "INPUT" || active.tagName === "SELECT");
+
+  /* Ctrl shortcuts */
+  if (e.ctrlKey) {
+    const key = e.key.toLowerCase();
+
+    if (key === "f") {
+      e.preventDefault();
+      addRow();
+    }
+
+    if (key === "c" && isField) {
+      e.preventDefault();
+      const row = active.closest("tr");
+      clipboard = {
+        inputs: [...row.querySelectorAll("input")].map(i => i.value),
+        selects: [...row.querySelectorAll("select")].map(s => s.selectedIndex)
       };
-
-      if (officeUsers[officeSelect.value]) {
-        officeUsers[officeSelect.value].forEach(user => {
-          const opt = document.createElement("option");
-          opt.value = user; opt.textContent = user;
-          endUserSelect.appendChild(opt);
-        });
-      }
     }
 
-    // Add Row button logic (only once)
-    document.getElementById("addRowBtn").addEventListener("click", () => {
-      const tbody = document.querySelector("table tbody");
-      const lastRow = tbody.querySelector(".main-row:last-of-type");
-      if (!lastRow) return;
-
-      const newRow = lastRow.cloneNode(true);
-      newRow.querySelectorAll("input").forEach(i => i.value = "");
-      newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
-      tbody.appendChild(newRow);
-    });
-
-    // Sorting table
-    const headers = document.querySelectorAll("thead th");
-    let sortDirection = {};
-    headers.forEach(header => {
-      header.addEventListener("click", () => {
-        const table = header.closest("table");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.querySelectorAll("tr")).filter(r => r.children.length > 1);
-        const columnIndex = header.dataset.column;
-        const direction = sortDirection[columnIndex] === "asc" ? "desc" : "asc";
-        sortDirection[columnIndex] = direction;
-
-        rows.sort((a, b) => {
-          let aText = a.children[columnIndex].innerText.trim();
-          let bText = b.children[columnIndex].innerText.trim();
-          let aNum = parseFloat(aText.replace(/,/g, ""));
-          let bNum = parseFloat(bText.replace(/,/g, ""));
-          if (!isNaN(aNum) && !isNaN(bNum)) return direction === "asc" ? aNum - bNum : bNum - aNum;
-          return direction === "asc" ? aText.localeCompare(bText) : bText.localeCompare(aText);
-        });
-        rows.forEach(r => tbody.appendChild(r));
-      });
-    });
-
-    // Navigation active link
-    const currentPage = location.pathname.split("/").pop();
-    document.querySelectorAll(".nav a").forEach(link => link.classList.toggle("active", link.getAttribute("href") === currentPage));
-
-function exportToExcel() {
-        try {
-            if (typeof XLSX === 'undefined') {
-                alert('XLSX library is loading. Please wait a moment and try again.');
-                return;
-            }
-            
-            const table = document.querySelector('table');
-            if (!table) {
-                alert('Table not found!');
-                return;
-            }
-            
-            const ws = XLSX.utils.table_to_sheet(table);
-            
-            // Auto-fit columns
-            const colWidths = [];
-            table.querySelectorAll('tr').forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                cells.forEach((cell, idx) => {
-                    const width = Math.max((cell.textContent.length || 10) + 2, 10);
-                    colWidths[idx] = Math.max(colWidths[idx] || 0, width);
-                });
-            });
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `purchase_request_${date}.xlsx`);
-            alert('Excel file downloaded successfully!');
-        } catch (e) {
-            alert('Error exporting to Excel: ' + e.message);
-            console.error(e);
-        }
+    if (key === "v" && clipboard) {
+      e.preventDefault();
+      saveState();
+      const row = getTemplateRow();
+      row.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx] || "");
+      row.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx] || 0);
+      tbody.appendChild(row);
     }
 
- 
-    
+    if (key === "z") {
+      e.preventDefault();
+      if (undoStack.length) restoreState(undoStack.pop());
+    }
+    return;
+  }
 
-    
-  </script>
+  /* Arrow navigation */
+  if (isField && ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+    moveFocus(active, e.key);
+  }
+});
+
+/* =========================
+   OFFICE TO END USER MAPPING
+========================= */
+const officeEndUserMap = {
+  "OVP": ["OVP", "ITMU", "LEGAL", "HCDMD", "PAU", "MSD", "HRMU", "PSMU", "FMS", "CASHIERING", "SBAC"],
+  "North": ["BRANCH", "LHIO CALOOCAN", "LHIO Mandaluyong", "LHIO MANILA", "LHIO DMW OFP", "LHIO Valenzuela"],
+  "Central": ["BRANCH", "LHIO QUEZON CITY", "LHIO FAIRVIEW", "LHIO RIZAL"],
+  "South": ["BRANCH", "LHIO MAKATI", "LHIO PASIG", "LHIO LAS PIÑAS", "LHIO PARAÑAQUE", "GLOBAL Satellite Office"]
+};
+
+/* =========================
+   UPDATE END USER BASED ON OFFICE
+========================= */
+function updateEndUser(officeSelect) {
+  const row = officeSelect.closest("tr");
+  const endUserSelect = row.querySelector(".enduser-select");
+  const selectedOffice = officeSelect.value;
+
+  // Clear the End User dropdown
+  endUserSelect.innerHTML = '<option value="">-- Select End User --</option>';
+
+  // If an office is selected, populate End User options
+  if (selectedOffice && officeEndUserMap[selectedOffice]) {
+    const endUsers = officeEndUserMap[selectedOffice];
+    endUsers.forEach(endUser => {
+      const option = document.createElement("option");
+      option.value = endUser;
+      option.textContent = endUser;
+      endUserSelect.appendChild(option);
+    });
+  }
+}
+</script>
+<script>
+function confirmPaperSizeAndExport() {
+  const selected = document.querySelector('input[name="paperSize"]:checked').value;
+
+  // jsPDF-safe page size mapping (mm)
+  const pageSizes = {
+    a4: "a4",
+    letter: "letter",
+    legal: "legal",
+    a3: [420, 297],      // A3 landscape
+    a5: [210, 148],      // A5 landscape
+    tabloid: [432, 279]  // Tabloid landscape
+  };
+
+  const format = pageSizes[selected] || "a4";
+
+  closePaperSizeDialog();
+
+  const element = document.querySelector("table");
+
+  const opt = {
+    margin: 10,
+    filename: `purchase_request_${new Date().toISOString().split("T")[0]}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      scrollX: 0,
+      scrollY: 0
+    },
+    jsPDF: {
+      unit: "mm",
+      format: format,
+      orientation: "landscape"
+    }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+  const format = pageSizes[selected] || "a4";
+
+  closePaperSizeDialog();
+
+  const element = document.querySelector("table");
+
+  const opt = {
+    margin: 10,
+    filename: `purchase_request_${new Date().toISOString().split("T")[0]}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, scrollX: 0, scrollY: 0 },
+    jsPDF: {
+      unit: "mm",
+      format: format,
+      orientation: "landscape"
+    }
+  };
+
+  html2pdf().set(opt).from(element).save();
+
+</script>
+
 
 </body>
 </html>

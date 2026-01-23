@@ -1,523 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>PhilHealth Procurement System</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
+<meta charset="UTF-8" />
+<title>PhilHealth Procurement System</title>
 
-    body {
-      margin: 0;
-      background-color: #ffffff;
-      color: #000;
-    }
-    .status-select {
-  width: 100%;
-  height: 26px;
-  font-size: 12.5px;
-  padding: 2px 6px;
-  border: 1px solid #bfbfbf;
-  border-radius: 3px;
-  background-color: #ffffff;
-  cursor: pointer;
+<!-- ===================== STYLES ===================== -->
+<style>
+* { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+body { margin: 0; background:#fff; color:#000; }
+
+/* ===== HEADER ===== */
+.header {
+  display:flex;
+  align-items:center;
+  background:#8fe04e;
+  padding:10px 20px;
 }
 
-.status-select:focus {
-  outline: none;
-  border-color: #5aa300;
-  box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
+.logo {
+  display:flex;
+  align-items:center;
+  background:#fff;
+  padding:5px 15px;
+  border-radius:40px;
+  margin-right:40px;
 }
+.logo img { height:45px; margin-right:10px; }
+.logo span { font-weight:bold; font-size:14px; }
 
-
-    .header {
-      display: flex;
-      align-items: center;
-      background-color: #8fe04e;
-      padding: 10px 20px;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      margin-right: 30px;
-      background: #fff;
-      padding: 5px 15px;
-      border-radius: 40px;
-    }
-
-    .logo img {
-      height: 45px;
-      margin-right: 10px;
-    }
-
-    .logo span {
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .nav {
-      display: flex;
-      gap: 30px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .nav a {
-      text-decoration: none;
-      color: #000;
-      padding-bottom: 3px;
-    }
-
-    .nav a.active {
-      border-bottom: 3px solid #000;
-    }
-
-    .container {
-      padding: 20px;
-    }
-    .processor-select {
-  width: 100%;
-  height: 26px;
-  font-size: 12.5px;
-  padding: 2px 6px;
-  border: 1px solid #bfbfbf;
-  border-radius: 3px;
-  background-color: #ffffff;
-  cursor: pointer;
+/* ===== NAV BAR ===== */
+.nav { display:flex; gap:30px; font-weight:bold; font-size:14px; }
+.nav a {
+  text-decoration:none;
+  color:#000;
+  position:relative;
+  padding:5px 0;
+  transition:color .2s, transform .2s;
 }
-
-.processor-select:focus {
-  outline: none;
-  border-color: #5aa300;
-  box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
+.nav a::after {
+  content:'';
+  position:absolute;
+  left:0; bottom:-3px;
+  width:0; height:3px;
+  background:#000;
+  transition:width .3s;
 }
+.nav a:hover { color:#3c6; transform:scale(1.05); }
+.nav a:hover::after,
+.nav a.active::after { width:100%; }
 
+/* ===== CONTENT ===== */
+.container { padding:20px; }
 
-    table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed; 
-  font-size: 13px;
-}
-
+/* ===== TABLE ===== */
+table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:13px; }
 thead th {
-  border: 1px solid #bfbfbf;
-  background-color: #f2f2f2;
-  padding: 6px;
-  text-align: center;
-  font-weight: bold;
+  border:1px solid #bfbfbf;
+  background:#f2f2f2;
+  padding:6px;
+  cursor:pointer;
 }
-footer {
-  margin-bottom: 0%;
-}
+thead th:hover { background:#e5f7d4; }
 
 tbody td {
-  border: 1px solid #d9d9d9;
-  padding: 4px 6px;
-  height: 28px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border:1px solid #d9d9d9;
+  padding:4px 6px;
+  height:28px;
+}
+tbody tr:hover { background:#eaf4ff; }
+
+td input, td select {
+  width:100%;
+  border:none;
+  padding:4px 6px;
+  font-size:12.5px;
+  outline:none;
+}
+td input:focus, td select:focus {
+  border:1px solid #5aa300;
+  background:#f2fff0;
 }
 
+/* ===== BUTTONS ===== */
+.export-buttons { margin-top:15px; }
+.export-buttons button {
+  padding:6px 12px;
+  margin-right:6px;
+  cursor:pointer;
+  border:none;
+  border-radius:4px;
+  font-size:13px;
+}
+.btn-success { background:#5aa300; color:#fff; }
+.btn-danger { background:#d9534f; color:#fff; }
+.btn-info { background:#5bc0de; color:#fff; }
 
-tbody tr:hover {
-  background-color: #eaf4ff;
+/* ===== MODAL ===== */
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  z-index:9999;
 }
+.modal-content {
+  background:#fff;
+  width:420px;
+  margin:12% auto;
+  padding:20px;
+  border-radius:6px;
+}
+.modal-buttons { text-align:right; margin-top:15px; }
+.modal-buttons button { padding:6px 12px; cursor:pointer; }
+.btn-cancel { background:#ccc; }
+.btn-confirm { background:#5aa300; color:#fff; }
+</style>
 
-    .footer {
-      background-color: #8fe04e;
-      text-align: center;
-      padding: 10px;
-      font-weight: bold;
-      margin-top: 40px;
-    }
-
-    thead th {
-  border-bottom: 2px solid #000;
-  padding: 6px;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-thead th:hover {
-  background-color: #e5f7d4;
-}
-.procurement-select {
-  width: 100%;
-  padding: 4px 6px;
-  font-size: 13px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
-}
-select {
-  width: 100%;
-  padding: 4px 6px;
-  font-size: 13px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
-}
-.status-select {
-  width: 100%;
-  height: 24px;
-  font-size: 13px;
-  border: none;
-  background: transparent;
-  outline: none;
-  cursor: pointer;
-}
-
-.status-select:focus {
-  background-color: #fff;
-  border: 1px solid #4a90e2;
-}
-.details-row {
-  display: none;
-  background-color: #f9fff2;
-}
-
-.details-container {
-  padding: 12px;
-}
-
-.inner-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.inner-table th {
-  background-color: #e5f7d4;
-  border: 1px solid #bfbfbf;
-  padding: 6px;
-  text-align: left;
-}
-
-.inner-table td {
-  border: 1px solid #d9d9d9;
-  padding: 6px;
-}
-.procurement-select {
-  width: 100%;
-  height: 26px;
-  font-size: 12.5px;
-  padding: 2px 6px;
-  border: 1px solid #bfbfbf;
-  border-radius: 3px;
-  background-color: #ffffff;
-  cursor: pointer;
-}
-
-.procurement-select:focus {
-  outline: none;
-  border-color: #5aa300;
-  box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
-}
-td input {
-  width: 100%;
-  border: none;
-  padding: 4px 6px;
-  font-size: 12.5px;
-  outline: none;
-}
-
-td input:focus {
-  background-color: #f2fff0;
-  border: 1px solid #5aa300;
-}
-.office-select {
-  width: 100%;
-  height: 26px;
-  font-size: 12.5px;
-  padding: 2px 6px;
-  border: 1px solid #bfbfbf;
-  border-radius: 3px;
-  background-color: #ffffff;
-  cursor: pointer;
-}
-
-.office-select:focus {
-  outline: none;
-  border-color: #5aa300;
-  box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
-}
-
-
-
-
-  </style>
-
-  <!-- Export Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- ===================== LIBRARIES ===================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<script>
-  const headers = document.querySelectorAll("thead th");
-  let sortDirection = {};
-
-  headers.forEach(header => {
-    header.addEventListener("click", () => {
-      const table = header.closest("table");
-      const tbody = table.querySelector("tbody");
-      const rows = Array.from(tbody.querySelectorAll("tr"))
-        .filter(row => row.children.length > 1); 
-
-      const columnIndex = header.dataset.column;
-      const direction = sortDirection[columnIndex] === "asc" ? "desc" : "asc";
-      sortDirection[columnIndex] = direction;
-
-      rows.sort((a, b) => {
-        let aText = a.children[columnIndex].innerText.trim();
-        let bText = b.children[columnIndex].innerText.trim();
-
-        let aNum = parseFloat(aText.replace(/,/g, ""));
-        let bNum = parseFloat(bText.replace(/,/g, ""));
-
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-          return direction === "asc" ? aNum - bNum : bNum - aNum;
-        }
-
-        return direction === "asc"
-          ? aText.localeCompare(bText)
-          : bText.localeCompare(aText);
-      });
-
-      rows.forEach(row => tbody.appendChild(row));
-    });
-  });
-</script>
-<script>
-function updateEndUser(officeSelect) {
-  const row = officeSelect.closest("tr");
-  const endUserSelect = row.querySelector(".enduser-select");
-
-  // Clear previous options
-  endUserSelect.innerHTML = '<option value="">-- Select End User --</option>';
-
-  if (officeSelect.value === "OVP") {
-    const ovpUsers = ["OVP", "ITMU", "Legal", "HCDMD", "PAU", "MSD", "HRMU", "PSMU", "FMS", "CASHIERING", "SBAC"];
-
-    ovpUsers.forEach(user => {
-      const opt = document.createElement("option");
-      opt.value = user;
-      opt.textContent = user;
-      endUserSelect.appendChild(opt);
-    });
-  }
-  if (officeSelect.value === "North") {
-    const ovpUsers = ["Branch", "LHIO Caloocan", "Mandaluyong", "Manila", "DMW OFp", "Valenzuela"];
-
-    ovpUsers.forEach(user => {
-      const opt = document.createElement("option");
-      opt.value = user;
-      opt.textContent = user;
-      endUserSelect.appendChild(opt);
-    });
-  }
-  if (officeSelect.value === "Central") {
-    const ovpUsers = ["Branch", "LHIO Quezon City", "LHIO Fairview", "LHIO Rizal", ];
-
-    ovpUsers.forEach(user => {
-      const opt = document.createElement("option");
-      opt.value = user;
-      opt.textContent = user;
-      endUserSelect.appendChild(opt);
-    });
-  }
-  if (officeSelect.value === "South") {
-    const ovpUsers = ["Branch", "LHIO Makati", "LHIO Pasig", "LHIO Las pinas", "DMW LHIO paranaque", "Global Satellite Office"];
-
-    ovpUsers.forEach(user => {
-      const opt = document.createElement("option");
-      opt.value = user;
-      opt.textContent = user;
-      endUserSelect.appendChild(opt);
-    });
-  }
-}
-</script>
-
 
 <body>
- 
 
-
-  <div class="header">
-    <div class="logo">
-      <img src="https://www.parfait.com.ph/images/product-icon/philhealth-icon.png" alt="PhilHealth Logo">
-      <span>PhilHealth<br><small>Your Partner in Health</small></span>
-    </div>
-
-   <nav class="nav">
-  <a href="purchase_request.html" class="active">PURCHASE REQUEST</a>
-  <a href="request_for_qoutation.html">REQUEST FOR QUOTATION</a>
-  <a href="philgeps_posting.html">PHILGEPS POSTING OF RFQ</a>
-  <a href="notice_of_award.html">NOTICE OF AWARD</a>
-  <a href="contract.html">CONTRACT</a>
-  <a href="supplier_directory.html">SUPPLIER DIRECTORY</a>
-</nav>
-
+<!-- ===================== HEADER ===================== -->
+<div class="header">
+  <div class="logo">
+    <img src="https://www.parfait.com.ph/images/product-icon/philhealth-icon.png">
+    <span>PhilHealth<br><small>Your Partner in Health</small></span>
   </div>
 
-  <main class="content">
-  <div class="container">
-    <table>
-     <thead>
-  <tr>
-    <th data-column="0">Control #</th>
-    <th data-column="1">Ref PR #</th>
-    <th data-column="2">Date Prepared</th>
-    <th data-column="3">Date Opening</th>
-    <th data-column="4">Date Closing</th>
-  </tr>
+  <nav class="nav">
+    <a href="purchase_request.html" class="active">PURCHASE REQUEST</a>
+    <a href="request_for_qoutation.html">REQUEST FOR QUOTATION</a>
+    <a href="philgeps_posting.html">PHILGEPS POSTING OF RFQ</a>
+    <a href="notice_of_award.html">NOTICE OF AWARD</a>
+    <a href="contract.html">CONTRACT</a>
+    <a href="supplier_directory.html">SUPPLIER DIRECTORY</a>
+  </nav>
+</div>
+
+<!-- ===================== CONTENT ===================== -->
+<div class="container">
+<table>
+<thead>
+<tr>
+  <th data-col="0">Control #</th>
+  <th data-col="1">Ref PR #</th>
+  <th data-col="2">Date Prepared</th>
+  <th data-col="3">Date Opening</th>
+  <th data-col="4">Date Closing</th>
+</tr>
 </thead>
 
 <tbody>
-  <tr class="main-row">
-    <td><input type="text" placeholder="Control #" /></td>
-    <td><input type="number" placeholder="Ref PR#" /></td>
-    <td><input type="date" placeholder="Date Prepared" /><td>
-    <td><input type="date" placeholder="Date Opening" /><td>
-      <td><input type="date" placeholder="Date Closing" /><td>
-  </tr>
-
-
+<tr class="main-row">
+  <td><input></td>
+  <td><input type="number"></td>
+  <td><input type="date"></td>
+  <td><input type="date"></td>
+  <td><input type="date"></td>
+</tr>
 </tbody>
+</table>
 
-    </table>
- 
+<div class="export-buttons">
+  <button class="btn-success" onclick="exportExcel()">Save Excel</button>
+  <button class="btn-danger" onclick="openPDF()">Save PDF</button>
+  <button class="btn-info" onclick="exportCSV()">Save CSV</button>
+  <button id="addRowBtn">+</button>
+</div>
+</div>
 
-    <div class="export-buttons">
-      <button class="btn btn-success" onclick="exportToExcel()">
-          <i class="fas fa-file-excel"></i> Save to Excel (.xlsx)
-      </button>
-      <button class="btn btn-danger" onclick="exportToPDF()">
-          <i class="fas fa-file-pdf"></i> Save to PDF
-      </button>
-      <button class="btn btn-info" onclick="exportToCSV()">
-          <i class="fas fa-file-csv"></i> Save to CSV
-      </button>
-   </div>
-</main>   
+<!-- ===================== PDF MODAL ===================== -->
+<div id="paperModal" class="modal">
+  <div class="modal-content">
+    <b>Select Paper Size</b><br><br>
+    <label><input type="radio" name="paper" value="a4" checked> A4</label><br>
+    <label><input type="radio" name="paper" value="letter"> Letter</label><br><br>
+    <div class="modal-buttons">
+      <button class="btn-cancel" onclick="closePDF()">Cancel</button>
+      <button class="btn-confirm" onclick="exportPDF()">Export</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    // Export to Excel (.xlsx)
-    function exportToExcel() {
-        try {
-            if (typeof XLSX === 'undefined') {
-                alert('XLSX library is loading. Please wait a moment and try again.');
-                return;
-            }
-            
-            const table = document.querySelector('table');
-            if (!table) {
-                alert('Table not found!');
-                return;
-            }
-            
-            const ws = XLSX.utils.table_to_sheet(table);
-            
-            // Auto-fit columns
-            const colWidths = [];
-            table.querySelectorAll('tr').forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                cells.forEach((cell, idx) => {
-                    const width = Math.max((cell.textContent.length || 10) + 2, 10);
-                    colWidths[idx] = Math.max(colWidths[idx] || 0, width);
-                });
-            });
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `purchase_request_${date}.xlsx`);
-            alert('Excel file downloaded successfully!');
-        } catch (e) {
-            alert('Error exporting to Excel: ' + e.message);
-            console.error(e);
-        }
-    }
+<!-- ===================== SCRIPTS ===================== -->
+<script>
+/* ===== ADD ROW ===== */
+function addNewRow() {
+  const tbody = document.querySelector("tbody");
+  const row = tbody.querySelector(".main-row").cloneNode(true);
+  row.querySelectorAll("input").forEach(i=>i.value="");
+  tbody.appendChild(row);
+  row.querySelector("input").focus();
+}
+document.getElementById("addRowBtn").onclick = addNewRow;
 
-    // Export to PDF
-    function exportToPDF() {
-        try {
-            const element = document.querySelector('table');
-            const opt = {
-                margin: 10,
-                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        } catch (e) {
-            alert('Error exporting to PDF: ' + e.message);
-            console.error(e);
-        }
-    }
+/* ===== CTRL + F HOTKEY (WORKING) ===== */
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && e.key.toLowerCase() === "f") {
+    e.preventDefault();
+    addNewRow();
+  }
+}, true);
 
-    // Export to CSV
-    function exportToCSV() {
-        try {
-            if (typeof XLSX === 'undefined') {
-                alert('XLSX library is loading. Please wait a moment and try again.');
-                return;
-            }
-            
-            const table = document.querySelector('table');
-            if (!table) {
-                alert('Table not found!');
-                return;
-            }
-            
-            const ws = XLSX.utils.table_to_sheet(table);
-            
-            // Auto-fit columns
-            const colWidths = [];
-            table.querySelectorAll('tr').forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                cells.forEach((cell, idx) => {
-                    const width = Math.max((cell.textContent.length || 10) + 2, 10);
-                    colWidths[idx] = Math.max(colWidths[idx] || 0, width);
-                });
-            });
-            ws['!cols'] = colWidths.map(w => ({ wch: w }));
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            const date = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(wb, `purchase_request_${date}.csv`);
-            alert('CSV file downloaded successfully!');
-        } catch (e) {
-            alert('Error exporting to CSV: ' + e.message);
-            console.error(e);
-        }
-    }
-  </script>
-  <script>
-  const currentPage = location.pathname.split("/").pop();
-  document.querySelectorAll(".nav a").forEach(link => {
-    if (link.getAttribute("href") === currentPage) {
-      link.classList.add("active");
-    } else {
-      link.classList.remove("active");
-    }
-  });
+/* ===== SORTING ===== */
+document.querySelectorAll("thead th").forEach(th=>{
+  let asc=true;
+  th.onclick=()=>{
+    const idx=th.dataset.col;
+    const tbody=document.querySelector("tbody");
+    [...tbody.rows].sort((a,b)=>{
+      return asc
+        ? a.cells[idx].innerText.localeCompare(b.cells[idx].innerText)
+        : b.cells[idx].innerText.localeCompare(a.cells[idx].innerText);
+    }).forEach(r=>tbody.appendChild(r));
+    asc=!asc;
+  };
+});
+
+/* ===== EXPORT ===== */
+function exportExcel(){
+  const ws=XLSX.utils.table_to_sheet(document.querySelector("table"));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Sheet1");
+  XLSX.writeFile(wb,"purchase_request.xlsx");
+}
+function exportCSV(){ exportExcel(); }
+function openPDF(){ paperModal.style.display="block"; }
+function closePDF(){ paperModal.style.display="none"; }
+function exportPDF(){
+  closePDF();
+  html2pdf().from(document.querySelector("table")).save("purchase_request.pdf");
+}
 </script>
 
 </body>
-<footer>
-  <div class="footer">
-  @OJT'S PROJECT WEBSITE 2026
-</div>
-</footer>
-
-
 </html>

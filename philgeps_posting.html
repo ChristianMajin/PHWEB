@@ -128,13 +128,7 @@ tbody tr:hover {
   background-color: #eaf4ff;
 }
 
-    .footer {
-      background-color: #8fe04e;
-      text-align: center;
-      padding: 10px;
-      font-weight: bold;
-      margin-top: 40px;
-    }
+    
 
     thead th {
   border-bottom: 2px solid #000;
@@ -248,7 +242,13 @@ td input:focus {
   box-shadow: 0 0 2px rgba(90, 163, 0, 0.6);
 }
 
-
+ .footer {
+      background-color: #8fe04e;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      margin-top: 40px;
+    }
 
 
   </style>
@@ -380,13 +380,28 @@ function updateEndUser(officeSelect) {
 
 <tbody>
   <tr class="main-row">
-    <td><input type="text" placeholder="Control #" /></td>
-    <td><input type="number" placeholder="Ref PR#" /></td>
-    <td><input type="date" placeholder="Date Prepared" /><td>
-    <td><input type="date" placeholder="Date Opening" /><td>
-      <td><input type="date" placeholder="Date Closing" /><td>
+    <td>
+      <input type="text" placeholder="Control #" />
+    </td>
+
+    <td>
+      <input type="number" placeholder="Ref PR #" />
+    </td>
+
+    <td>
+      <input type="date" />
+    </td>
+
+    <td>
+      <input type="date" />
+    </td>
+
+    <td>
+      <input type="date" />
+    </td>
   </tr>
 </tbody>
+
 
     </table>
  
@@ -395,12 +410,17 @@ function updateEndUser(officeSelect) {
       <button class="btn btn-success" onclick="exportToExcel()">
           <i class="fas fa-file-excel"></i> Save to Excel (.xlsx)
       </button>
-      <button class="btn btn-danger" onclick="exportToPDF()">
+     <button class="btn btn-danger" onclick="openPaperSizeDialog()">
           <i class="fas fa-file-pdf"></i> Save to PDF
       </button>
       <button class="btn btn-info" onclick="exportToCSV()">
           <i class="fas fa-file-csv"></i> Save to CSV
       </button>
+      <button id="addRowBtn"
+  style="margin:9px 0; padding:5px 10px; font-size:10px; cursor:pointer;">
+  +
+</button>
+
    </div>
 </main>   
 
@@ -444,22 +464,33 @@ function updateEndUser(officeSelect) {
     }
 
     // Export to PDF
-    function exportToPDF() {
-        try {
-            const element = document.querySelector('table');
-            const opt = {
-                margin: 10,
-                filename: `purchase_request_${new Date().toISOString().split('T')[0]}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        } catch (e) {
-            alert('Error exporting to PDF: ' + e.message);
-            console.error(e);
-        }
+    function exportToPDF(paperSize = "a4") {
+  try {
+    const element = document.querySelector("table");
+
+    let orientation = "portrait";
+    if (["a3", "tabloid", "legal"].includes(paperSize)) {
+      orientation = "landscape";
     }
+
+    const opt = {
+      margin: 10,
+      filename: `purchase_request_${paperSize}_${new Date().toISOString().split("T")[0]}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: {
+        unit: "mm",
+        format: paperSize,
+        orientation: orientation
+      }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  } catch (e) {
+    alert("Error exporting to PDF: " + e.message);
+    console.error(e);
+  }
+}
 
     // Export to CSV
     function exportToCSV() {
@@ -476,6 +507,18 @@ function updateEndUser(officeSelect) {
             }
             
             const ws = XLSX.utils.table_to_sheet(table);
+
+             // Add Row button logic (only once)
+    document.getElementById("addRowBtn").addEventListener("click", () => {
+      const tbody = document.querySelector("table tbody");
+      const lastRow = tbody.querySelector(".main-row:last-of-type");
+      if (!lastRow) return;
+
+      const newRow = lastRow.cloneNode(true);
+      newRow.querySelectorAll("input").forEach(i => i.value = "");
+      newRow.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+      tbody.appendChild(newRow);
+    });
             
             // Auto-fit columns
             const colWidths = [];
@@ -509,13 +552,177 @@ function updateEndUser(officeSelect) {
     }
   });
 </script>
+<script>
+function openPaperSizeDialog() {
+  document.getElementById("paperSizeModal").style.display = "block";
+}
+
+function closePaperSizeDialog() {
+  document.getElementById("paperSizeModal").style.display = "none";
+}
+
+function confirmPaperSizeAndExport() {
+  const selected = document.querySelector('input[name="paperSize"]:checked').value;
+  closePaperSizeDialog();
+  exportToPDF(selected);
+}
+</script>
+
 
 </body>
-<footer>
-  <div class="footer">
-  @OJT'S PROJECT WEBSITE 2026
-</div>
-</footer>
 
+<script>
+  // Add row functionality for the "+" button
+  document.getElementById("addRowBtn").addEventListener("click", () => {
+    const tbody = document.querySelector("table tbody");
+    const lastRow = tbody.querySelector(".main-row:last-of-type");
+    if (!lastRow) return;
+
+    // Clone the last row
+    const newRow = lastRow.cloneNode(true);
+
+    // Clear all input and select values
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+    newRow.querySelectorAll("select").forEach(select => select.selectedIndex = 0);
+
+    // Append the new row to the tbody
+    tbody.appendChild(newRow);
+  });
+</script>
+
+<script>
+  const addRowBtn = document.getElementById("addRowBtn");
+  const table = document.querySelector("table tbody");
+
+  let clipboard = null; // for Ctrl+C/Ctrl+V
+  let undoStack = [];   // for undo
+
+  // Save table state for undo
+  function saveState() {
+    const rowsData = Array.from(table.rows).map(r => {
+      return {
+        inputs: Array.from(r.querySelectorAll("input")).map(i => i.value),
+        selects: Array.from(r.querySelectorAll("select")).map(s => s.selectedIndex)
+      };
+    });
+    undoStack.push(rowsData);
+    if (undoStack.length > 20) undoStack.shift();
+  }
+
+  // Restore table state
+  function restoreState(state) {
+    table.innerHTML = "";
+    state.forEach(rowData => {
+      const newRow = table.querySelector(".main-row").cloneNode(true);
+      newRow.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx]);
+      newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = rowData.selects[idx]);
+      table.appendChild(newRow);
+    });
+  }
+
+  // Arrow key navigation
+  function moveFocus(current, direction) {
+    const cells = Array.from(current.closest("tr").querySelectorAll("input, select"));
+    let index = cells.indexOf(current);
+    const row = current.closest("tr");
+    let newCell;
+
+    switch(direction) {
+      case "ArrowRight":
+        if (index < cells.length - 1) newCell = cells[index + 1];
+        break;
+      case "ArrowLeft":
+        if (index > 0) newCell = cells[index - 1];
+        break;
+      case "ArrowDown":
+        const nextRow = row.nextElementSibling;
+        if (nextRow) newCell = nextRow.querySelectorAll("input, select")[index];
+        break;
+      case "ArrowUp":
+        const prevRow = row.previousElementSibling;
+        if (prevRow) newCell = prevRow.querySelectorAll("input, select")[index];
+        break;
+    }
+
+    if (newCell) {
+      newCell.focus();
+      if (newCell.tagName === "INPUT") newCell.select();
+    }
+  }
+
+  document.addEventListener("keydown", function(e) {
+    const active = document.activeElement;
+    const isInput = active.tagName === "INPUT" || active.tagName === "SELECT";
+
+    if (e.ctrlKey) {
+      switch (e.key.toLowerCase()) {
+        case "f": // Ctrl+F -> add row
+          e.preventDefault();
+          saveState();
+          addRowBtn.click();
+          break;
+        case "c": // Ctrl+C -> copy row
+          e.preventDefault();
+          if (isInput) {
+            const row = active.closest("tr");
+            if (row) {
+              clipboard = {
+                inputs: Array.from(row.querySelectorAll("input")).map(i => i.value),
+                selects: Array.from(row.querySelectorAll("select")).map(s => s.selectedIndex)
+              };
+              alert("Row copied!");
+            }
+          }
+          break;
+        case "v": // Ctrl+V -> paste row
+          e.preventDefault();
+          if (clipboard) {
+            saveState();
+            const newRow = table.querySelector(".main-row").cloneNode(true);
+            newRow.querySelectorAll("input").forEach((i, idx) => i.value = clipboard.inputs[idx]);
+            newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = clipboard.selects[idx]);
+            table.appendChild(newRow);
+          }
+          break;
+        case "z": // Ctrl+Z -> undo
+          e.preventDefault();
+          if (undoStack.length > 0) {
+            const lastState = undoStack.pop();
+            restoreState(lastState);
+          }
+          break;
+      }
+    } else if (isInput) {
+      // Arrow keys navigation
+      const arrows = ["ArrowRight","ArrowLeft","ArrowUp","ArrowDown"];
+      if (arrows.includes(e.key)) {
+        e.preventDefault();
+        moveFocus(active, e.key);
+      }
+    }
+  });
+</script>
+
+
+<!-- Paper Size Selection Modal -->
+<div id="paperSizeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:9999;">
+  <div style="background:#fff; width:420px; margin:80px auto; padding:20px; border-radius:6px;">
+    <h3 style="margin-top:0;">Select Paper Size for PDF</h3>
+
+    <div style="display:flex; flex-direction:column; gap:8px; font-size:14px;">
+      <label><input type="radio" name="paperSize" value="a4" checked> A4 (210 × 297 mm)</label>
+      <label><input type="radio" name="paperSize" value="letter"> Letter (8.5 × 11 in)</label>
+      <label><input type="radio" name="paperSize" value="legal"> Legal (8.5 × 14 in)</label>
+      <label><input type="radio" name="paperSize" value="a3"> A3 (297 × 420 mm)</label>
+      <label><input type="radio" name="paperSize" value="a5"> A5 (148 × 210 mm)</label>
+      <label><input type="radio" name="paperSize" value="tabloid"> Tabloid (11 × 17 in)</label>
+    </div>
+
+    <div style="margin-top:15px; text-align:right;">
+      <button onclick="closePaperSizeDialog()">Cancel</button>
+      <button onclick="confirmPaperSizeAndExport()" style="margin-left:10px;">Export PDF</button>
+    </div>
+  </div>
+</div>
 
 </html>
