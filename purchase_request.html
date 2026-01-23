@@ -277,6 +277,8 @@ const MAX_UNDO = 20;
 
 // Load data when page loads
 window.addEventListener("DOMContentLoaded", () => {
+  // Keep original template row safe
+  const originalTemplate = document.querySelector(".main-row").cloneNode(true);
   loadFromLocalStorage();
   attachInputListeners();
 });
@@ -311,24 +313,28 @@ function loadFromLocalStorage() {
   if (saved) {
     try {
       const data = JSON.parse(saved);
-      if (data.length > 0) {
+      if (data && data.length > 0) {
         tbody.innerHTML = "";
         data.forEach(rowData => {
           const row = getTemplateRow();
-          row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
-          row.querySelectorAll("select").forEach((s, idx) => s.value = rowData.selects[idx] || "");
-          
-          // Reattach the office select change listener
-          const officeSelect = row.querySelector(".office-select");
-          officeSelect.onchange = function() {
-            updateEndUser(this);
-          };
-          
-          tbody.appendChild(row);
+          if (row) {
+            row.querySelectorAll("input").forEach((i, idx) => i.value = rowData.inputs[idx] || "");
+            row.querySelectorAll("select").forEach((s, idx) => s.value = rowData.selects[idx] || "");
+            
+            // Reattach the office select change listener
+            const officeSelect = row.querySelector(".office-select");
+            officeSelect.onchange = function() {
+              updateEndUser(this);
+            };
+            
+            tbody.appendChild(row);
+          }
         });
       }
     } catch (e) {
       console.error("Error loading saved data:", e);
+      // If there's an error, clear the corrupted localStorage
+      localStorage.removeItem("purchase_request_data");
     }
   }
 }

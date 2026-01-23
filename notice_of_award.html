@@ -731,6 +731,8 @@ function confirmPaperSizeAndExport() {
       newRow.querySelectorAll("select").forEach((s, idx) => s.selectedIndex = rowData.selects[idx]);
       table.appendChild(newRow);
     });
+    attachInputListeners();
+    saveToLocalStorage();
   }
 
   // Arrow key navigation

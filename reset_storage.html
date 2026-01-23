@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Storage</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      margin: 10px 5px;
+    }
+    .btn-clear {
+      background: #d9534f;
+      color: white;
+    }
+    .btn-back {
+      background: #5aa300;
+      color: white;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      display: none;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔄 Reset LocalStorage</h1>
+    <p>This tool will clear all saved form data from your browser.</p>
+    
+    <div>
+      <button class="btn-clear" onclick="clearAll()">Clear All Data</button>
+      <button class="btn-back" onclick="goBack()">Go Back</button>
+    </div>
+    
+    <div class="status" id="status">
+      ✓ All localStorage data has been cleared!
+    </div>
+  </div>
+
+  <script>
+    function clearAll() {
+      localStorage.removeItem("purchase_request_data");
+      localStorage.removeItem("request_for_quotation_data");
+      localStorage.removeItem("philgeps_posting_data");
+      localStorage.removeItem("notice_of_award_data");
+      localStorage.removeItem("contract_data");
+      
+      document.getElementById("status").style.display = "block";
+      
+      setTimeout(() => {
+        window.location.href = "purchase_request.html";
+      }, 1500);
+    }
+    
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
